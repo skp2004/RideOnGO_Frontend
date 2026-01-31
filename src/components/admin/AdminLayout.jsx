@@ -14,15 +14,12 @@ import {
     ChevronLeft,
     Shield,
     Bell,
-    Sun,
-    Moon,
     Building,
     FileText,
     CreditCard,
     User,
     ChevronDown,
 } from "lucide-react";
-import { useTheme } from "../../context/ThemeContext";
 
 const menuItems = [
     {
@@ -70,7 +67,6 @@ const menuItems = [
 export default function AdminLayout({ children }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { theme, toggleTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -192,17 +188,6 @@ export default function AdminLayout({ children }) {
 
                     {/* Right Side - Actions */}
                     <div className="flex items-center gap-2">
-                        {/* Theme Toggle */}
-                        <button
-                            onClick={toggleTheme}
-                            className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                        >
-                            {theme === "dark" ? (
-                                <Sun className="h-5 w-5 text-yellow-500" />
-                            ) : (
-                                <Moon className="h-5 w-5 text-gray-600" />
-                            )}
-                        </button>
 
                         {/* Notifications */}
                         <button className="relative flex items-center justify-center w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">

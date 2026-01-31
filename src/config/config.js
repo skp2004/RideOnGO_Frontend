@@ -7,13 +7,14 @@ export const IMAGE_URL = import.meta.env.VITE_IMAGE_URL || '';
 // API Endpoints
 export const API_ENDPOINTS = {
     // Auth endpoints
-    LOGIN: '/users/signin',
-    ADMIN_LOGIN: '/users/admin/signin',
-    LOGGED_USER: '/users/me',
-    REGISTER: '/users/signup',
+    LOGIN: '/ums/users/signin',
+    ADMIN_LOGIN: '/ums/users/admin/signin',
+    LOGGED_USER: '/ums/users/me',
+    REGISTER: '/ums/users/signup',
+    UPDATE_PROFILE: '/ums/users/me',
 
     // User endpoints
-    USERS: '/users',
+    USERS: '/ums/users',
 
     // BMS endpoints (Bike Management System)
     BRANDS: '/bms/brands',

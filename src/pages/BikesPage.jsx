@@ -204,7 +204,7 @@ const BikesPage = () => {
             case "AVAILABLE":
                 return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
             case "RENTED":
-                return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+                return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
             case "MAINTENANCE":
                 return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
             default:
@@ -415,10 +415,10 @@ const BikesPage = () => {
                                     {filteredBikes.map((bike) => (
                                         <Card
                                             key={bike.bikeId}
-                                            className={`group overflow-hidden bg-white dark:bg-slate-800 hover:shadow-xl transition-all duration-300 ${bike.status !== "AVAILABLE" ? "opacity-75" : ""}`}
+                                            className={`group overflow-hidden bg-gray-900 border-gray-800 hover:shadow-xl hover:shadow-red-500/10 hover:border-red-500/30 transition-all duration-300 ${bike.status !== "AVAILABLE" ? "opacity-75" : ""}`}
                                         >
                                             {/* Bike Image */}
-                                            <div className="relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 h-48 overflow-hidden flex items-center justify-center p-4">
+                                            <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 h-48 overflow-hidden flex items-center justify-center p-4">
                                                 {bike.image ? (
                                                     <img
                                                         src={bike.image}
@@ -440,7 +440,7 @@ const BikesPage = () => {
                                             <CardContent className="p-4">
                                                 {/* Title and Category */}
                                                 <div className="text-center mb-4">
-                                                    <h3 className="font-bold text-lg text-slate-800 dark:text-white">{bike.brandName}</h3>
+                                                    <h3 className="font-bold text-lg text-white">{bike.brandName}</h3>
                                                     <p className="text-sm text-muted-foreground">{bike.category || "Scooter"}</p>
                                                 </div>
 
@@ -450,13 +450,13 @@ const BikesPage = () => {
                                                         <p className="text-xs text-muted-foreground">Per Hour</p>
                                                         <p className="font-bold text-red-500">₹{bike.ratePerHour}</p>
                                                     </div>
-                                                    <div className="text-center px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                                                        <p className="text-xs text-muted-foreground">1 Day</p>
-                                                        <p className="font-bold text-slate-700 dark:text-white">₹{bike.ratePerDay}</p>
+                                                    <div className="text-center px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+                                                        <p className="text-xs text-gray-400">1 Day</p>
+                                                        <p className="font-bold text-white">₹{bike.ratePerDay}</p>
                                                     </div>
-                                                    <div className="text-center px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600">
-                                                        <p className="text-xs text-muted-foreground">7 Days</p>
-                                                        <p className="font-bold text-slate-700 dark:text-white">₹{bike.pricePer7Days || bike.ratePerDay * 7}</p>
+                                                    <div className="text-center px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+                                                        <p className="text-xs text-gray-400">7 Days</p>
+                                                        <p className="font-bold text-white">₹{bike.pricePer7Days || bike.ratePerDay * 7}</p>
                                                     </div>
                                                 </div>
 
@@ -493,25 +493,25 @@ const BikesPage = () => {
 
             {/* Detail Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-gray-900 border-gray-800">
                     {selectedBike && (
                         <div className="grid lg:grid-cols-2 gap-0">
                             {/* Left Section - Bike Info */}
-                            <div className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 p-6">
+                            <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-6">
                                 {/* Bike Header with Name and Rating */}
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+                                        <h2 className="text-2xl font-bold text-white">
                                             {selectedBike.brandName}
                                         </h2>
-                                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
+                                        <p className="text-sm text-gray-400 flex items-center gap-1 mt-1">
                                             <MapPin className="h-3 w-3" />
                                             {selectedBike.locationCity}, {selectedBike.locationState}
                                         </p>
                                     </div>
-                                    <div className="flex items-center gap-1 bg-white dark:bg-slate-700 px-2 py-1 rounded-lg shadow-sm">
-                                        <Star className="h-4 w-4 text-gray-400 fill-gray-400" />
-                                        <span className="font-semibold text-slate-700 dark:text-white">
+                                    <div className="flex items-center gap-1 bg-gray-800 px-2 py-1 rounded-lg shadow-sm border border-gray-700">
+                                        <Star className="h-4 w-4 text-red-400 fill-red-400" />
+                                        <span className="font-semibold text-white">
                                             {selectedBike.rating || "4.5"}
                                         </span>
                                     </div>
@@ -540,43 +540,43 @@ const BikesPage = () => {
                                         <p className="font-semibold text-sm text-red-600">{selectedBike.cc} cc</p>
                                     </div>
                                     <div className="text-center">
-                                        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-full bg-gray-100 dark:bg-gray-900/30">
-                                            <CircleDot className="h-5 w-5 text-gray-500" />
+                                        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-full bg-gray-800">
+                                            <CircleDot className="h-5 w-5 text-gray-400" />
                                         </div>
-                                        <p className="text-xs text-muted-foreground">Brakes</p>
-                                        <p className="font-semibold text-sm text-gray-600">{selectedBike.brakes || "Drum, SBT"}</p>
+                                        <p className="text-xs text-gray-400">Brakes</p>
+                                        <p className="font-semibold text-sm text-gray-300">{selectedBike.brakes || "Drum, SBT"}</p>
                                     </div>
                                     <div className="text-center">
-                                        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-full bg-green-100 dark:bg-green-900/30">
+                                        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-full bg-green-900/30">
                                             <Fuel className="h-5 w-5 text-green-500" />
                                         </div>
-                                        <p className="text-xs text-muted-foreground">Mileage</p>
-                                        <p className="font-semibold text-sm text-green-600">{selectedBike.mileage} km/l</p>
+                                        <p className="text-xs text-gray-400">Mileage</p>
+                                        <p className="font-semibold text-sm text-green-500">{selectedBike.mileage} km/l</p>
                                     </div>
                                     <div className="text-center">
-                                        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
-                                            <Droplets className="h-5 w-5 text-blue-500" />
+                                        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-full bg-red-900/30">
+                                            <Droplets className="h-5 w-5 text-red-500" />
                                         </div>
-                                        <p className="text-xs text-muted-foreground">Tank</p>
-                                        <p className="font-semibold text-sm text-blue-600">{selectedBike.tankCapacity || "5.1"} L</p>
+                                        <p className="text-xs text-gray-400">Tank</p>
+                                        <p className="font-semibold text-sm text-red-500">{selectedBike.tankCapacity || "5.1"} L</p>
                                     </div>
                                 </div>
 
                                 {/* Category Info */}
-                                <div className="border-t pt-4">
-                                    <h4 className="font-semibold text-slate-800 dark:text-white mb-2">
+                                <div className="border-t border-gray-700 pt-4">
+                                    <h4 className="font-semibold text-white mb-2">
                                         {getCategoryDescription(selectedBike.category).title}
                                     </h4>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                    <p className="text-sm text-gray-400 leading-relaxed">
                                         {getCategoryDescription(selectedBike.category).desc}
                                     </p>
                                 </div>
                             </div>
 
                             {/* Right Section - Pricing & Details */}
-                            <div className="p-6 bg-white dark:bg-slate-800">
+                            <div className="p-6 bg-gray-900">
                                 {/* Duration Tabs */}
-                                <div className="flex border-b mb-6">
+                                <div className="flex border-b border-gray-700 mb-6">
                                     {modalDurationTabs.map((tab) => (
                                         <button
                                             key={tab}
@@ -599,41 +599,41 @@ const BikesPage = () => {
                                             <p className="text-xs text-muted-foreground mb-1">Base price</p>
                                             <p className="text-lg font-bold text-red-500">₹{getPriceForDuration(selectedBike, selectedModalDuration)}</p>
                                         </div>
-                                        <div className="text-center p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                                            <p className="text-xs text-muted-foreground mb-1">Deposit</p>
-                                            <p className="text-lg font-bold text-green-600">₹{selectedBike.deposit || 0}</p>
+                                        <div className="text-center p-3 rounded-lg border border-gray-700 bg-gray-800">
+                                            <p className="text-xs text-gray-400 mb-1">Deposit</p>
+                                            <p className="text-lg font-bold text-green-500">₹{selectedBike.deposit || 0}</p>
                                         </div>
-                                        <div className="text-center p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                                            <p className="text-xs text-muted-foreground mb-1">Free kms</p>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-white">{selectedBike.freeKms || 4}</p>
+                                        <div className="text-center p-3 rounded-lg border border-gray-700 bg-gray-800">
+                                            <p className="text-xs text-gray-400 mb-1">Free kms</p>
+                                            <p className="text-lg font-bold text-white">{selectedBike.freeKms || 4}</p>
                                         </div>
-                                        <div className="text-center p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                                            <p className="text-xs text-muted-foreground mb-1">Excess kms</p>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-white">₹{selectedBike.excessKmRate || 3.5}/km</p>
+                                        <div className="text-center p-3 rounded-lg border border-gray-700 bg-gray-800">
+                                            <p className="text-xs text-gray-400 mb-1">Excess kms</p>
+                                            <p className="text-lg font-bold text-white">₹{selectedBike.excessKmRate || 3.5}/km</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Inclusions */}
                                 <div className="mb-6">
-                                    <p className="text-sm text-muted-foreground mb-3">Inclusions & add-ons</p>
+                                    <p className="text-sm text-gray-400 mb-3">Inclusions & add-ons</p>
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div className="flex items-center gap-3 p-3 rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-                                            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
-                                                <Shield className="h-5 w-5 text-green-600" />
+                                        <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-700 bg-gray-800">
+                                            <div className="w-10 h-10 rounded-full bg-red-900/30 flex items-center justify-center">
+                                                <Shield className="h-5 w-5 text-red-500" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-sm">1 Helmet</p>
-                                                <p className="text-xs text-muted-foreground">Add a second helmet at checkout</p>
+                                                <p className="font-medium text-sm text-white">1 Helmet</p>
+                                                <p className="text-xs text-gray-400">Add a second helmet at checkout</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-3 rounded-lg border border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
-                                            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
-                                                <Phone className="h-5 w-5 text-green-600" />
+                                        <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-700 bg-gray-800">
+                                            <div className="w-10 h-10 rounded-full bg-red-900/30 flex items-center justify-center">
+                                                <Phone className="h-5 w-5 text-red-500" />
                                             </div>
                                             <div>
-                                                <p className="font-medium text-sm">Phone mount,</p>
-                                                <p className="text-xs text-muted-foreground">bungee/luggage straps</p>
+                                                <p className="font-medium text-sm text-white">Phone mount,</p>
+                                                <p className="text-xs text-gray-400">bungee/luggage straps</p>
                                             </div>
                                         </div>
                                     </div>
@@ -641,20 +641,20 @@ const BikesPage = () => {
 
                                 {/* Why this bike section */}
                                 <div className="mb-6">
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-white mb-3">
+                                    <p className="text-sm font-semibold text-white mb-3">
                                         Why {selectedBike.brandName} for {selectedBike.locationCity}
                                     </p>
                                     <ul className="space-y-2">
-                                        <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                        <li className="flex items-start gap-2 text-sm text-gray-400">
+                                            <Check className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                             <span>Powerful {selectedBike.cc} cc engine ensures effortless rides in both traffic and open roads.</span>
                                         </li>
-                                        <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                        <li className="flex items-start gap-2 text-sm text-gray-400">
+                                            <Check className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                             <span>Delivers an impressive mileage of around {selectedBike.mileage} km/l, making it ideal for daily commuting.</span>
                                         </li>
-                                        <li className="flex items-start gap-2 text-sm text-muted-foreground">
-                                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                                        <li className="flex items-start gap-2 text-sm text-gray-400">
+                                            <Check className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
                                             <span>Equipped with reliable {selectedBike.brakes || "Drum, SBT"} braking system, ensuring safe control in city conditions.</span>
                                         </li>
                                     </ul>

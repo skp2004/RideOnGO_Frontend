@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -16,6 +17,9 @@ import {
     Bike,
     Tag,
     Users,
+    Edit2,
+    Check,
+    X,
 } from "lucide-react";
 import adminService from "../../services/adminService";
 
@@ -24,6 +28,9 @@ export default function ProfilePage() {
     const navigate = useNavigate();
     const [profile, setProfile] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [editedProfile, setEditedProfile] = useState({});
     const hasFetchedRef = useRef(false);
 
     useEffect(() => {
@@ -38,6 +45,12 @@ export default function ProfilePage() {
         try {
             const data = await adminService.getAdminProfile();
             setProfile(data);
+            setEditedProfile({
+                firstName: data.firstName || "",
+                lastName: data.lastName || "",
+                phone: data.phone || "",
+                dob: data.dob || "",
+            });
             localStorage.setItem("adminUser", JSON.stringify(data));
         } catch (error) {
             toast({
@@ -48,6 +61,41 @@ export default function ProfilePage() {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            const updatedData = await adminService.updateAdminProfile(editedProfile);
+            setProfile({ ...profile, ...updatedData });
+            localStorage.setItem("adminUser", JSON.stringify({ ...profile, ...updatedData }));
+            setIsEditing(false);
+            toast({
+                title: "Profile Updated",
+                description: "Your profile has been updated successfully.",
+                variant: "success",
+            });
+            // Refresh to get latest data
+            fetchProfile();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: error.message || "Failed to update profile",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCancel = () => {
+        setEditedProfile({
+            firstName: profile?.firstName || "",
+            lastName: profile?.lastName || "",
+            phone: profile?.phone || "",
+            dob: profile?.dob || "",
+        });
+        setIsEditing(false);
     };
 
     const handleLogout = () => {
@@ -63,6 +111,15 @@ export default function ProfilePage() {
     const handleRefresh = () => {
         hasFetchedRef.current = false;
         fetchProfile();
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return "Not provided";
+        return new Date(dateString).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
     };
 
     if (isLoading) {
@@ -85,15 +142,51 @@ export default function ProfilePage() {
                     <p className="text-gray-400 mt-1">View and manage your admin account</p>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={handleRefresh}
-                        disabled={isLoading}
-                        className="border-gray-700 bg-gray-800/50 text-gray-300 hover:bg-gray-700 hover:text-white"
-                    >
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-                        Refresh
-                    </Button>
+                    {!isEditing ? (
+                        <>
+                            <Button
+                                variant="outline"
+                                onClick={() => setIsEditing(true)}
+                                className="border-gray-700 bg-gray-800/50 text-gray-300 hover:bg-gray-700 hover:text-white"
+                            >
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Edit Profile
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={handleRefresh}
+                                disabled={isLoading}
+                                className="border-gray-700 bg-gray-800/50 text-gray-300 hover:bg-gray-700 hover:text-white"
+                            >
+                                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                                Refresh
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                onClick={handleSave}
+                                disabled={isSaving}
+                                className="bg-red-500 hover:bg-red-600 text-white"
+                            >
+                                {isSaving ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Check className="h-4 w-4 mr-2" />
+                                )}
+                                {isSaving ? "Saving..." : "Save"}
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={handleCancel}
+                                disabled={isSaving}
+                                className="border-gray-700 text-gray-300 hover:bg-gray-800"
+                            >
+                                <X className="h-4 w-4 mr-2" />
+                                Cancel
+                            </Button>
+                        </>
+                    )}
                     <Button
                         onClick={handleLogout}
                         className="bg-red-600 hover:bg-red-700 text-white"
@@ -125,10 +218,27 @@ export default function ProfilePage() {
                                 )}
                             </div>
                             <div>
-                                <h3 className="text-xl font-bold text-white">
-                                    {profile?.firstName} {profile?.lastName}
-                                </h3>
-                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-500/20 text-red-400 text-sm font-medium rounded-full border border-red-500/30">
+                                {isEditing ? (
+                                    <div className="flex gap-2">
+                                        <Input
+                                            value={editedProfile.firstName}
+                                            onChange={(e) => setEditedProfile({ ...editedProfile, firstName: e.target.value })}
+                                            placeholder="First Name"
+                                            className="bg-gray-800 border-gray-700 text-white w-28"
+                                        />
+                                        <Input
+                                            value={editedProfile.lastName}
+                                            onChange={(e) => setEditedProfile({ ...editedProfile, lastName: e.target.value })}
+                                            placeholder="Last Name"
+                                            className="bg-gray-800 border-gray-700 text-white w-28"
+                                        />
+                                    </div>
+                                ) : (
+                                    <h3 className="text-xl font-bold text-white">
+                                        {profile?.firstName} {profile?.lastName}
+                                    </h3>
+                                )}
+                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-500/20 text-red-400 text-sm font-medium rounded-full border border-red-500/30 mt-2">
                                     <Shield className="h-3 w-3" />
                                     {profile?.role || "Administrator"}
                                 </span>
@@ -140,9 +250,10 @@ export default function ProfilePage() {
                                 <div className="p-2 rounded-lg bg-red-500/10">
                                     <Mail className="h-5 w-5 text-red-400" />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-sm text-gray-500">Email Address</p>
                                     <p className="font-medium text-white">{profile?.email}</p>
+                                    <p className="text-xs text-gray-500">(Cannot be changed)</p>
                                 </div>
                             </div>
 
@@ -150,9 +261,39 @@ export default function ProfilePage() {
                                 <div className="p-2 rounded-lg bg-red-500/10">
                                     <Phone className="h-5 w-5 text-red-400" />
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <p className="text-sm text-gray-500">Phone Number</p>
-                                    <p className="font-medium text-white">{profile?.phone || "Not provided"}</p>
+                                    {isEditing ? (
+                                        <Input
+                                            type="tel"
+                                            value={editedProfile.phone}
+                                            onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
+                                            placeholder="Enter phone number"
+                                            className="bg-gray-700 border-gray-600 text-white mt-1"
+                                        />
+                                    ) : (
+                                        <p className="font-medium text-white">{profile?.phone || "Not provided"}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 p-4 bg-gray-800/60 rounded-xl border border-gray-700/50">
+                                <div className="p-2 rounded-lg bg-red-500/10">
+                                    <Calendar className="h-5 w-5 text-red-400" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm text-gray-500">Date of Birth</p>
+                                    {isEditing ? (
+                                        <Input
+                                            type="date"
+                                            value={editedProfile.dob}
+                                            onChange={(e) => setEditedProfile({ ...editedProfile, dob: e.target.value })}
+                                            className="bg-gray-700 border-gray-600 text-white mt-1"
+                                            max={new Date().toISOString().split("T")[0]}
+                                        />
+                                    ) : (
+                                        <p className="font-medium text-white">{formatDate(profile?.dob)}</p>
+                                    )}
                                 </div>
                             </div>
 

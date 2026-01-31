@@ -80,6 +80,16 @@ const authService = {
     },
 
     /**
+     * Update currently logged in user profile
+     * @param {Object} userData - Updated user data (firstName, lastName, email, phone, dob)
+     * @returns {Promise<Object>} Updated user object
+     */
+    updateProfile: async (userData) => {
+        const response = await api.put(API_ENDPOINTS.UPDATE_PROFILE, userData);
+        return response.data;
+    },
+
+    /**
      * Logout user - clears local storage
      */
     logout: () => {

@@ -22,13 +22,19 @@ import {
     Loader2,
     AlertCircle,
 } from "lucide-react";
+import { format } from "date-fns";
 import { useAuth } from "../context/AuthContext";
+import authService from "../services/authService";
+import { useToast } from "@/components/ui/toast";
+import { cn } from "@/lib/utils";
 
 const ProfilePage = () => {
     const navigate = useNavigate();
-    const { user, isAuthenticated, logout, isLoading } = useAuth();
+    const { user, isAuthenticated, logout, isLoading, refreshUser } = useAuth();
+    const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("profile");
     const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [editedUser, setEditedUser] = useState({});
 
     useEffect(() => {
@@ -44,6 +50,7 @@ const ProfilePage = () => {
                 lastName: user.lastName || "",
                 email: user.email || "",
                 phone: user.phone || "",
+                dob: user.dob ? new Date(user.dob).toISOString().split('T')[0] : "",
             });
         }
     }, [user]);
@@ -53,9 +60,34 @@ const ProfilePage = () => {
         navigate("/login");
     };
 
-    const handleSave = () => {
-        // API call to update user would go here
-        setIsEditing(false);
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            await authService.updateProfile({
+                firstName: editedUser.firstName,
+                lastName: editedUser.lastName,
+                email: editedUser.email,
+                phone: editedUser.phone,
+                dob: editedUser.dob,
+            });
+            toast({
+                title: "Profile Updated",
+                description: "Your profile has been updated successfully.",
+            });
+            // Refresh user data in context
+            if (refreshUser) {
+                await refreshUser();
+            }
+            setIsEditing(false);
+        } catch (error) {
+            toast({
+                title: "Update Failed",
+                description: error.response?.data?.message || "Failed to update profile. Please try again.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleCancel = () => {
@@ -81,7 +113,7 @@ const ProfilePage = () => {
             case "ADMIN":
                 return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
             case "USER":
-                return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+                return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
             default:
                 return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400";
         }
@@ -118,7 +150,7 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="animate-fade-in min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="animate-fade-in min-h-screen bg-black">
             {/* Header Section */}
             <section className="relative py-12 overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-background to-red-500/5" />
@@ -139,7 +171,7 @@ const ProfilePage = () => {
                     <div className="grid lg:grid-cols-4 gap-8">
                         {/* Sidebar - Profile Card */}
                         <div className="lg:col-span-1">
-                            <Card className="sticky top-24 bg-gray-900/90 border-gray-800 shadow-xl">
+                            <Card className="sticky top-24 bg-gray-900/50 backdrop-blur-xl border-red-500/20 shadow-2xl shadow-red-500/5">
                                 <CardContent className="p-6">
                                     {/* Profile Image */}
                                     <div className="relative mx-auto w-32 h-32 mb-4">
@@ -216,29 +248,34 @@ const ProfilePage = () => {
                         {/* Main Content Area */}
                         <div className="lg:col-span-3">
                             {activeTab === "profile" && (
-                                <Card className="bg-gray-900/90 border-gray-800 shadow-xl">
-                                    <CardHeader className="flex flex-row items-center justify-between border-b border-gray-800">
+                                <Card className="bg-gray-900/50 backdrop-blur-xl border-red-500/20 shadow-2xl shadow-red-500/5">
+                                    <CardHeader className="flex flex-row items-center justify-between border-b border-red-500/20">
                                         <CardTitle className="text-white">Personal Information</CardTitle>
                                         {!isEditing ? (
                                             <Button
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={() => setIsEditing(true)}
-                                                className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+                                                className="border-red-500/30 text-red-400 hover:bg-red-500/20 hover:text-red-300"
                                             >
                                                 <Edit2 className="mr-2 h-4 w-4" />
                                                 Edit
                                             </Button>
                                         ) : (
                                             <div className="flex gap-2">
-                                                <Button size="sm" onClick={handleSave} className="bg-red-500 hover:bg-red-600">
-                                                    <Check className="mr-2 h-4 w-4" />
-                                                    Save
+                                                <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-red-500 hover:bg-red-600">
+                                                    {isSaving ? (
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Check className="mr-2 h-4 w-4" />
+                                                    )}
+                                                    {isSaving ? "Saving..." : "Save"}
                                                 </Button>
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
                                                     onClick={handleCancel}
+                                                    disabled={isSaving}
                                                     className="border-gray-700 text-gray-300 hover:bg-gray-800"
                                                 >
                                                     <X className="mr-2 h-4 w-4" />
@@ -247,8 +284,8 @@ const ProfilePage = () => {
                                             </div>
                                         )}
                                     </CardHeader>
-                                    <CardContent className="space-y-6">
-                                        <div className="grid md:grid-cols-2 gap-6">
+                                    <CardContent className="space-y-8 pt-6">
+                                        <div className="grid md:grid-cols-2 gap-8">
                                             {/* First Name */}
                                             <div className="space-y-2">
                                                 <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
@@ -293,18 +330,9 @@ const ProfilePage = () => {
                                                     <Mail className="h-4 w-4" />
                                                     Email
                                                 </label>
-                                                {isEditing ? (
-                                                    <Input
-                                                        type="email"
-                                                        value={editedUser.email}
-                                                        onChange={(e) =>
-                                                            setEditedUser({ ...editedUser, email: e.target.value })
-                                                        }
-                                                        className="bg-gray-800 border-gray-700 text-white"
-                                                    />
-                                                ) : (
-                                                    <p className="text-white font-medium">{user?.email}</p>
-                                                )}
+                                                <p className="text-gray-500 font-medium bg-gray-900/50 p-2 rounded border border-gray-800">
+                                                    {user?.email}
+                                                </p>
                                             </div>
 
                                             {/* Phone */}
@@ -328,14 +356,27 @@ const ProfilePage = () => {
                                             </div>
 
                                             {/* Date of Birth */}
-                                            <div className="space-y-2">
+                                            <div className="space-y-3">
                                                 <label className="text-sm font-medium text-gray-400 flex items-center gap-2">
                                                     <Calendar className="h-4 w-4" />
                                                     Date of Birth
                                                 </label>
-                                                <p className="text-white font-medium">
-                                                    {user?.dob ? new Date(user.dob).toLocaleDateString() : "Not provided"}
-                                                </p>
+                                                {isEditing ? (
+                                                    <Input
+                                                        id="dob-edit"
+                                                        type="date"
+                                                        value={editedUser.dob}
+                                                        onChange={(e) =>
+                                                            setEditedUser({ ...editedUser, dob: e.target.value })
+                                                        }
+                                                        className="bg-gray-800 border-gray-700 text-white"
+                                                        max={new Date().toISOString().split("T")[0]}
+                                                    />
+                                                ) : (
+                                                    <p className="text-white font-medium pl-1">
+                                                        {user?.dob ? format(new Date(user.dob), "PPP") : "Not provided"}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             {/* Status */}
@@ -349,10 +390,10 @@ const ProfilePage = () => {
                                         </div>
 
                                         {/* Document Verification Section */}
-                                        <div className="border-t border-gray-800 pt-6 mt-6">
+                                        <div className="border-t border-red-500/20 pt-6 mt-6">
                                             <h3 className="text-lg font-semibold mb-4 text-white">Document Verification</h3>
                                             <div className="grid md:grid-cols-2 gap-4">
-                                                <Card className="bg-gray-800/50 border-gray-700">
+                                                <Card className="bg-black/40 backdrop-blur-md border-red-500/20 hover:border-red-500/40 transition-colors">
                                                     <CardContent className="p-4 flex items-center justify-between">
                                                         <div>
                                                             <p className="font-medium text-white">Aadhaar Card</p>
@@ -367,7 +408,7 @@ const ProfilePage = () => {
                                                         )}
                                                     </CardContent>
                                                 </Card>
-                                                <Card className="bg-gray-800/50 border-gray-700">
+                                                <Card className="bg-black/40 backdrop-blur-md border-red-500/20 hover:border-red-500/40 transition-colors">
                                                     <CardContent className="p-4 flex items-center justify-between">
                                                         <div>
                                                             <p className="font-medium text-white">Driving License</p>
@@ -389,8 +430,8 @@ const ProfilePage = () => {
                             )}
 
                             {activeTab === "bookings" && (
-                                <Card className="bg-gray-900/90 border-gray-800 shadow-xl">
-                                    <CardHeader className="border-b border-gray-800">
+                                <Card className="bg-gray-900/50 backdrop-blur-xl border-red-500/20 shadow-2xl shadow-red-500/5">
+                                    <CardHeader className="border-b border-red-500/20">
                                         <CardTitle className="text-white">My Bookings</CardTitle>
                                     </CardHeader>
                                     <CardContent className="text-center py-12">
@@ -407,8 +448,8 @@ const ProfilePage = () => {
                             )}
 
                             {activeTab === "payments" && (
-                                <Card className="bg-gray-900/90 border-gray-800 shadow-xl">
-                                    <CardHeader className="border-b border-gray-800">
+                                <Card className="bg-gray-900/50 backdrop-blur-xl border-red-500/20 shadow-2xl shadow-red-500/5">
+                                    <CardHeader className="border-b border-red-500/20">
                                         <CardTitle className="text-white">Payment Methods</CardTitle>
                                     </CardHeader>
                                     <CardContent className="text-center py-12">
@@ -423,12 +464,12 @@ const ProfilePage = () => {
                             )}
 
                             {activeTab === "settings" && (
-                                <Card className="bg-gray-900/90 border-gray-800 shadow-xl">
-                                    <CardHeader className="border-b border-gray-800">
+                                <Card className="bg-gray-900/50 backdrop-blur-xl border-red-500/20 shadow-2xl shadow-red-500/5">
+                                    <CardHeader className="border-b border-red-500/20">
                                         <CardTitle className="text-white">Settings</CardTitle>
                                     </CardHeader>
                                     <CardContent className="space-y-4 pt-6">
-                                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+                                        <div className="flex items-center justify-between p-4 rounded-lg bg-black/40 backdrop-blur-md border border-red-500/20 hover:border-red-500/40 transition-colors">
                                             <div>
                                                 <p className="font-medium text-white">Email Notifications</p>
                                                 <p className="text-sm text-gray-400">
@@ -437,7 +478,7 @@ const ProfilePage = () => {
                                             </div>
                                             <input type="checkbox" className="accent-red-500 h-5 w-5" defaultChecked />
                                         </div>
-                                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+                                        <div className="flex items-center justify-between p-4 rounded-lg bg-black/40 backdrop-blur-md border border-red-500/20 hover:border-red-500/40 transition-colors">
                                             <div>
                                                 <p className="font-medium text-white">SMS Notifications</p>
                                                 <p className="text-sm text-gray-400">
@@ -446,7 +487,7 @@ const ProfilePage = () => {
                                             </div>
                                             <input type="checkbox" className="accent-red-500 h-5 w-5" />
                                         </div>
-                                        <div className="flex items-center justify-between p-4 rounded-lg bg-gray-800/50 border border-gray-700">
+                                        <div className="flex items-center justify-between p-4 rounded-lg bg-black/40 backdrop-blur-md border border-red-500/20 hover:border-red-500/40 transition-colors">
                                             <div>
                                                 <p className="font-medium text-white">Marketing Emails</p>
                                                 <p className="text-sm text-gray-400">

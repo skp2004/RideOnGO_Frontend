@@ -79,11 +79,11 @@ const HomePage = () => {
     return (
         <div className="animate-fade-in">
             {/* Hero Section */}
-            <section className="relative min-h-[90vh] flex items-center overflow-hidden">
+            <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-black">
                 {/* Background Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 via-red-500/5 to-background animate-gradient" />
-                <div className="absolute top-20 right-10 w-72 h-72 bg-red-500/20 rounded-full blur-3xl" />
-                <div className="absolute bottom-20 left-10 w-96 h-96 bg-red-500/10 rounded-full blur-3xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-red-500/5 to-black animate-gradient" />
+                <div className="absolute top-20 right-10 w-72 h-72 bg-red-500/30 rounded-full blur-3xl" />
+                <div className="absolute bottom-20 left-10 w-96 h-96 bg-red-600/20 rounded-full blur-3xl" />
 
                 <div className="container mx-auto px-4 py-20 relative z-10">
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -143,7 +143,7 @@ const HomePage = () => {
             </section>
 
             {/* Features Section */}
-            <section className="py-20 bg-muted/30">
+            <section className="py-20 bg-muted/50">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-16">
                         <h2 className="text-4xl font-bold mb-4">Why Choose Us?</h2>
@@ -159,7 +159,7 @@ const HomePage = () => {
                             return (
                                 <Card
                                     key={index}
-                                    className="border-none bg-background hover:-translate-y-2 transition-all duration-300"
+                                    className="border-border/50 bg-card hover:-translate-y-2 hover:border-primary/50 transition-all duration-300"
                                 >
                                     <CardContent className="p-6 text-center">
                                         <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -210,7 +210,7 @@ const HomePage = () => {
                             {bikes.map((bike) => (
                                 <Card
                                     key={bike.bikeId}
-                                    className="group overflow-hidden hover:shadow-2xl transition-all duration-300"
+                                    className="group overflow-hidden hover:shadow-2xl hover:shadow-red-500/20 hover:border-red-500/50 transition-all duration-300 bg-card border-border/50"
                                 >
                                     <div className="relative bg-gradient-to-br from-muted to-muted/50 h-48 overflow-hidden">
                                         {bike.image ? (

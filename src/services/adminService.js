@@ -174,6 +174,16 @@ const adminService = {
     },
 
     /**
+     * Update current admin profile
+     * @param {Object} userData - Updated user data (firstName, lastName, phone, dob)
+     * @returns {Promise<Object>}
+     */
+    updateAdminProfile: async (userData) => {
+        const response = await api.put(API_ENDPOINTS.UPDATE_PROFILE, userData);
+        return response.data;
+    },
+
+    /**
      * Logout admin - clear token and storage
      */
     logout: () => {

@@ -8,7 +8,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, Bike, Home, Info, Phone, User, LogIn, LogOut, MapPin, IndianRupee } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import FleetAndPriceModal from "./FleetAndPriceModal";
@@ -36,7 +35,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full z-50 bg-background/80 backdrop-blur-md border-b border-border">
+    <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-xl border-b border-red-500/20 shadow-lg shadow-black/20">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Brand Logo */}
@@ -76,7 +75,6 @@ const Navbar = () => {
 
           {/* Desktop Auth Buttons & Theme Toggle */}
           <div className="hidden md:flex items-center gap-3">
-            <ThemeToggle />
             {isAuthenticated ? (
               <>
                 <Link to="/profile">
@@ -118,7 +116,6 @@ const Navbar = () => {
 
           {/* Mobile Menu Trigger */}
           <div className="md:hidden flex items-center gap-2">
-            <ThemeToggle />
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon">
