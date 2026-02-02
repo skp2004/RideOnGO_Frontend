@@ -30,10 +30,14 @@ import {
 } from "lucide-react";
 import adminService from "../services/adminService";
 import locationService from "../services/locationService";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "@/components/ui/toast";
 
 const BikesPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
+    const { user, isAuthenticated } = useAuth();
+    const { toast } = useToast();
     const locationId = searchParams.get("locationId");
     const cityName = searchParams.get("city");
 
@@ -196,6 +200,38 @@ const BikesPage = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setSelectedBike(null);
+    };
+
+    // Handle Book Now click with login check
+    const handleBookNow = () => {
+        // Check if user is logged in
+        if (!isAuthenticated) {
+            toast({
+                title: "Login Required",
+                description: "Please login to book a bike",
+                variant: "destructive"
+            });
+            // Navigate to login with redirect back to bikes page
+            navigate("/login", {
+                state: {
+                    from: "/bikes",
+                    redirectToBooking: true,
+                    bikeData: selectedBike,
+                    duration: selectedModalDuration
+                }
+            });
+            handleCloseModal();
+            return;
+        }
+
+        // User is authenticated, proceed to booking
+        navigate("/booking", {
+            state: {
+                bike: selectedBike,
+                duration: selectedModalDuration
+            }
+        });
+        handleCloseModal();
     };
 
     // Get status badge color
@@ -662,9 +698,10 @@ const BikesPage = () => {
 
                                 {/* Check Availability Button */}
                                 <Button
+                                    onClick={handleBookNow}
                                     className="w-full bg-red-500 hover:bg-red-600 text-white py-6 text-lg font-semibold gap-2"
                                 >
-                                    Book Now
+                                    {isAuthenticated ? "Book Now" : "Login to Book"}
                                     <ArrowRight className="h-5 w-5" />
                                 </Button>
                             </div>

@@ -174,7 +174,20 @@ export default function LoginDemo() {
         setIsLoading(true);
         try {
           await login(formData.email, formData.password);
-          navigate("/profile");
+
+          // Check if user was redirected here from booking flow
+          const { redirectToBooking, bikeData, duration } = location.state || {};
+          if (redirectToBooking && bikeData) {
+            // Redirect back to booking page with bike data
+            navigate("/booking", {
+              state: {
+                bike: bikeData,
+                duration: duration
+              }
+            });
+          } else {
+            navigate("/profile");
+          }
         } catch (err) {
           setApiError(err.message || "Login failed. Please try again.");
         } finally {

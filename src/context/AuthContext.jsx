@@ -119,6 +119,7 @@ export function AuthProvider({ children }) {
         user,
         token,
         loading,
+        isLoading: loading, // Alias for compatibility
         error,
         isAuthenticated: !!token && !!user,
         login,

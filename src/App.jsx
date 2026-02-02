@@ -10,6 +10,9 @@ import LoginDemo from "./pages/login";
 import BikesPage from "./pages/BikesPage";
 import ContactPage from "./pages/ContactPage";
 import ProfilePage from "./pages/ProfilePage";
+import BookingPage from "./pages/BookingPage";
+import PaymentPage from "./pages/PaymentPage";
+import MyBookingsPage from "./pages/MyBookingsPage";
 
 // Admin imports
 import AdminLogin from "./pages/AdminLogin";
@@ -21,6 +24,8 @@ import AdminBrandsPage from "./pages/admin/BrandsPage";
 import AdminLocationsPage from "./pages/admin/LocationsPage";
 import AdminUsersPage from "./pages/admin/UsersPage";
 import AdminProfilePage from "./pages/admin/ProfilePage";
+import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
+import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
 
 function App() {
   return (
@@ -43,8 +48,8 @@ function App() {
                       <Route path="/locations" element={<AdminLocationsPage />} />
                       <Route path="/users" element={<AdminUsersPage />} />
                       <Route path="/profile" element={<AdminProfilePage />} />
-                      <Route path="/bookings" element={<AdminDashboard />} />
-                      <Route path="/payments" element={<AdminDashboard />} />
+                      <Route path="/bookings" element={<AdminBookingsPage />} />
+                      <Route path="/payments" element={<AdminPaymentsPage />} />
                       <Route path="/settings" element={<AdminDashboard />} />
                     </Routes>
                   </AdminLayout>
@@ -62,6 +67,9 @@ function App() {
                     <Route path="/login" element={<LoginDemo />} />
                     <Route path="/signup" element={<LoginDemo />} />
                     <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/booking" element={<BookingPage />} />
+                    <Route path="/payment" element={<PaymentPage />} />
+                    <Route path="/my-bookings" element={<MyBookingsPage />} />
                   </Routes>
                 </HomeLayout>
               } />

@@ -20,4 +20,8 @@ export const API_ENDPOINTS = {
     BRANDS: '/bms/brands',
     BIKES: '/bms/bikes',
     LOCATIONS: '/bms/locations',
+
+    // Booking & Payment endpoints
+    BOOKINGS: '/bms/bookings',
+    PAYMENTS: '/bms/payments',
 };
