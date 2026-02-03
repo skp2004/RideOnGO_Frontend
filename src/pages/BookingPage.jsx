@@ -70,7 +70,7 @@ const BookingPage = () => {
         const fetchLocations = async () => {
             try {
                 const data = await adminService.getLocations();
-                setLocations(data.filter(loc => loc.active));
+                setLocations(data.filter(loc => loc.isActive));
             } catch (error) {
                 console.error("Failed to fetch locations:", error);
             }

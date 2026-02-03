@@ -116,7 +116,7 @@ export default function LocationsPage() {
     // Enhanced search and filter
     const filteredLocations = locations.filter((location) => {
         const query = searchQuery.toLowerCase();
-        const statusText = location.active ? "active" : "inactive";
+        const statusText = location.isActive ? "active" : "inactive";
         const matchesSearch =
             location.address.toLowerCase().includes(query) ||
             location.city.toLowerCase().includes(query) ||
@@ -129,8 +129,8 @@ export default function LocationsPage() {
 
         const matchesStatus =
             statusFilter === "all" ||
-            (statusFilter === "active" && location.active) ||
-            (statusFilter === "inactive" && !location.active);
+            (statusFilter === "active" && location.isActive) ||
+            (statusFilter === "inactive" && !location.isActive);
 
         const matchesCity = cityFilter === "all" || location.city === cityFilter;
         const matchesState = stateFilter === "all" || location.state === stateFilter;
@@ -282,7 +282,7 @@ export default function LocationsPage() {
             state: location.state,
             pincode: location.pincode.toString(),
             contactNumber: location.contactNumber,
-            active: location.active,
+            active: location.isActive,
         });
         setIsEditModalOpen(true);
     };
@@ -442,7 +442,7 @@ export default function LocationsPage() {
                                                     <TableCell>{location.contactNumber}</TableCell>
                                                     <TableCell>{location.totalBikes}</TableCell>
                                                     <TableCell>
-                                                        {location.active ? (
+                                                        {location.isActive ? (
                                                             <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
                                                                 <CheckCircle className="h-3 w-3" />
                                                                 Active
@@ -543,7 +543,7 @@ export default function LocationsPage() {
                                 </div>
                                 <div>
                                     <h3 className="font-semibold text-lg">{selectedLocation.city}, {selectedLocation.state}</h3>
-                                    {selectedLocation.active ? (
+                                    {selectedLocation.isActive ? (
                                         <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
                                             <CheckCircle className="h-3 w-3" />
                                             Active
