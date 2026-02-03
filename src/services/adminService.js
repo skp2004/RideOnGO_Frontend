@@ -220,6 +220,27 @@ const adminService = {
         const response = await api.delete(`${API_ENDPOINTS.USERS}/${id}`);
         return response.data;
     },
+
+    /**
+     * Verify a user (Admin only)
+     * Requires user to have both Aadhaar and License uploaded
+     * @param {number} userId - User ID
+     * @returns {Promise<Object>}
+     */
+    verifyUser: async (userId) => {
+        const response = await api.put(`${API_ENDPOINTS.USERS}/${userId}/verify`);
+        return response.data;
+    },
+
+    /**
+     * Unverify a user (Admin only)
+     * @param {number} userId - User ID
+     * @returns {Promise<Object>}
+     */
+    unverifyUser: async (userId) => {
+        const response = await api.put(`${API_ENDPOINTS.USERS}/${userId}/unverify`);
+        return response.data;
+    },
 };
 
 export default adminService;

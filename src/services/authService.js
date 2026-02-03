@@ -90,6 +90,47 @@ const authService = {
     },
 
     /**
+     * Upload profile image for the logged in user
+     * @param {File} profileImage - Profile image file
+     * @returns {Promise<Object>} Updated user object
+     */
+    uploadProfileImage: async (profileImage) => {
+        const formData = new FormData();
+        formData.append('profileImage', profileImage);
+
+        const response = await api.post(API_ENDPOINTS.UPLOAD_PROFILE_IMAGE, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    /**
+     * Upload documents (Aadhaar and/or License) for the logged in user
+     * @param {File|null} aadhaarImage - Aadhaar document image file
+     * @param {File|null} licenseImage - Driving license image file
+     * @returns {Promise<Object>} Updated user object
+     */
+    uploadDocuments: async (aadhaarImage = null, licenseImage = null) => {
+        const formData = new FormData();
+
+        if (aadhaarImage) {
+            formData.append('aadhaarImage', aadhaarImage);
+        }
+        if (licenseImage) {
+            formData.append('licenseImage', licenseImage);
+        }
+
+        const response = await api.post(API_ENDPOINTS.UPLOAD_DOCUMENTS, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    },
+
+    /**
      * Logout user - clears local storage
      */
     logout: () => {

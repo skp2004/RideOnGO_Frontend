@@ -28,6 +28,8 @@ import {
     Clock,
     CreditCard,
     IndianRupee,
+    CalendarDays,
+    ArrowUpDown,
 } from "lucide-react";
 import bookingService from "../../services/bookingService";
 import { useToast } from "@/components/ui/toast";
@@ -43,6 +45,9 @@ const AdminPaymentsPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [modeFilter, setModeFilter] = useState("all");
+    const [dateFrom, setDateFrom] = useState("");
+    const [dateTo, setDateTo] = useState("");
+    const [sortBy, setSortBy] = useState("newest");
 
     useEffect(() => {
         fetchPayments();
@@ -88,24 +93,61 @@ const AdminPaymentsPage = () => {
     };
 
     const filteredPayments = useMemo(() => {
-        return payments.filter((payment) => {
+        let result = payments.filter((payment) => {
             const matchesSearch =
                 payment.id?.toString().includes(searchTerm) ||
                 payment.bookingId?.toString().includes(searchTerm) ||
                 payment.txnRef?.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = statusFilter === "all" || payment.status === statusFilter;
             const matchesMode = modeFilter === "all" || payment.paymentMode === modeFilter;
-            return matchesSearch && matchesStatus && matchesMode;
+
+            // Date range filter
+            let matchesDateRange = true;
+            if (dateFrom) {
+                const fromDate = new Date(dateFrom);
+                const paymentDate = new Date(payment.createdAt);
+                matchesDateRange = matchesDateRange && paymentDate >= fromDate;
+            }
+            if (dateTo) {
+                const toDate = new Date(dateTo);
+                toDate.setHours(23, 59, 59, 999);
+                const paymentDate = new Date(payment.createdAt);
+                matchesDateRange = matchesDateRange && paymentDate <= toDate;
+            }
+
+            return matchesSearch && matchesStatus && matchesMode && matchesDateRange;
         });
-    }, [payments, searchTerm, statusFilter, modeFilter]);
+
+        // Apply sorting
+        switch (sortBy) {
+            case "oldest":
+                result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                break;
+            case "amount-high":
+                result.sort((a, b) => b.amount - a.amount);
+                break;
+            case "amount-low":
+                result.sort((a, b) => a.amount - b.amount);
+                break;
+            case "newest":
+            default:
+                result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        }
+
+        return result;
+    }, [payments, searchTerm, statusFilter, modeFilter, dateFrom, dateTo, sortBy]);
 
     const clearFilters = () => {
         setSearchTerm("");
         setStatusFilter("all");
         setModeFilter("all");
+        setDateFrom("");
+        setDateTo("");
+        setSortBy("newest");
     };
 
-    const hasActiveFilters = searchTerm || statusFilter !== "all" || modeFilter !== "all";
+    const hasActiveFilters = searchTerm || statusFilter !== "all" || modeFilter !== "all" ||
+        dateFrom || dateTo || sortBy !== "newest";
 
     // Stats
     const stats = useMemo(() => ({
@@ -183,7 +225,8 @@ const AdminPaymentsPage = () => {
 
             {/* Filters */}
             <Card className="bg-gray-900 border-gray-800">
-                <CardContent className="p-4">
+                <CardContent className="p-4 space-y-4">
+                    {/* First row - Search and dropdowns */}
                     <div className="flex flex-wrap gap-4 items-center">
                         <div className="flex-1 min-w-[200px]">
                             <div className="relative">
@@ -218,12 +261,48 @@ const AdminPaymentsPage = () => {
                                 ))}
                             </SelectContent>
                         </Select>
+                    </div>
+
+                    {/* Second row - Date range and Sort */}
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex items-center gap-2">
+                            <CalendarDays className="h-4 w-4 text-gray-400" />
+                            <span className="text-sm text-gray-400">From:</span>
+                            <Input
+                                type="date"
+                                value={dateFrom}
+                                onChange={(e) => setDateFrom(e.target.value)}
+                                className="w-[150px] bg-gray-800 border-gray-700 text-white"
+                            />
+                            <span className="text-sm text-gray-400">To:</span>
+                            <Input
+                                type="date"
+                                value={dateTo}
+                                onChange={(e) => setDateTo(e.target.value)}
+                                className="w-[150px] bg-gray-800 border-gray-700 text-white"
+                            />
+                        </div>
+                        <Select value={sortBy} onValueChange={setSortBy}>
+                            <SelectTrigger className="w-[160px] bg-gray-800 border-gray-700 text-white">
+                                <ArrowUpDown className="h-4 w-4 mr-2" />
+                                <SelectValue placeholder="Sort By" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-gray-800 border-gray-700">
+                                <SelectItem value="newest">Newest First</SelectItem>
+                                <SelectItem value="oldest">Oldest First</SelectItem>
+                                <SelectItem value="amount-high">Amount (High-Low)</SelectItem>
+                                <SelectItem value="amount-low">Amount (Low-High)</SelectItem>
+                            </SelectContent>
+                        </Select>
                         {hasActiveFilters && (
-                            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-gray-400">
+                            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-gray-400 hover:text-white">
                                 <X className="h-4 w-4 mr-1" />
-                                Clear
+                                Clear All Filters
                             </Button>
                         )}
+                        <span className="text-sm text-gray-500 ml-auto">
+                            Showing {filteredPayments.length} of {payments.length} payments
+                        </span>
                     </div>
                 </CardContent>
             </Card>

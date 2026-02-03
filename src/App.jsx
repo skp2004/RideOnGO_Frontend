@@ -26,6 +26,7 @@ import AdminUsersPage from "./pages/admin/UsersPage";
 import AdminProfilePage from "./pages/admin/ProfilePage";
 import AdminBookingsPage from "./pages/admin/AdminBookingsPage";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
+import AdminReviewsPage from "./pages/admin/ReviewsPage";
 
 function App() {
   return (
@@ -50,7 +51,7 @@ function App() {
                       <Route path="/profile" element={<AdminProfilePage />} />
                       <Route path="/bookings" element={<AdminBookingsPage />} />
                       <Route path="/payments" element={<AdminPaymentsPage />} />
-                      <Route path="/settings" element={<AdminDashboard />} />
+                      <Route path="/reviews" element={<AdminReviewsPage />} />
                     </Routes>
                   </AdminLayout>
                 </AdminAuthGuard>

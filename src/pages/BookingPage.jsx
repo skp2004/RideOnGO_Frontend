@@ -23,6 +23,8 @@ import {
     Loader2,
     CheckCircle,
     AlertCircle,
+    ShieldAlert,
+    FileCheck,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import bookingService from "../services/bookingService";
@@ -68,21 +70,35 @@ const BookingPage = () => {
         const fetchLocations = async () => {
             try {
                 const data = await adminService.getLocations();
-                setLocations(data.filter(loc => loc.isActive));
+                setLocations(data.filter(loc => loc.active));
             } catch (error) {
                 console.error("Failed to fetch locations:", error);
             }
         };
         fetchLocations();
 
-        // Set default dates
+        // Set default dates based on selected duration
         const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const todayStr = today.toISOString().split('T')[0];
 
-        setPickupDate(today.toISOString().split('T')[0]);
-        setDropDate(tomorrow.toISOString().split('T')[0]);
-    }, []);
+        if (selectedDuration === "7 Days") {
+            // Weekly: 7 days from now
+            const weekLater = new Date(today);
+            weekLater.setDate(weekLater.getDate() + 7);
+            setPickupDate(todayStr);
+            setDropDate(weekLater.toISOString().split('T')[0]);
+            setPickupTime("10:00");
+            setDropTime("10:00");
+        } else {
+            // Default: 1 Day (tomorrow)
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            setPickupDate(todayStr);
+            setDropDate(tomorrow.toISOString().split('T')[0]);
+            setPickupTime("10:00");
+            setDropTime("10:00");
+        }
+    }, [selectedDuration]);
 
     // Calculate rental details
     const calculateRentalDetails = () => {
@@ -96,17 +112,22 @@ const BookingPage = () => {
         const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
         const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-        let rentalType, basePrice;
-        if (diffDays >= 7) {
+        let rentalType, basePrice, originalPrice, discountAmount;
+        // Minimum 1 day rental
+        const actualDays = Math.max(1, diffDays);
+
+        if (actualDays >= 7) {
             rentalType = "WEEKLY";
-            basePrice = bike.pricePer7Days || bike.ratePerDay * 7;
-            basePrice = Math.ceil(diffDays / 7) * basePrice;
-        } else if (diffDays >= 1) {
-            rentalType = "DAILY";
-            basePrice = bike.ratePerDay * diffDays;
+            const weeklyPrice = bike.pricePer7Days || bike.ratePerDay * 7;
+            originalPrice = Math.ceil(actualDays / 7) * weeklyPrice;
+            // Apply 10% discount for weekly
+            discountAmount = Math.round(originalPrice * 0.1);
+            basePrice = originalPrice - discountAmount;
         } else {
-            rentalType = "HOURLY";
-            basePrice = bike.ratePerHour * Math.max(1, diffHours);
+            rentalType = "DAILY";
+            basePrice = bike.ratePerDay * actualDays;
+            originalPrice = basePrice;
+            discountAmount = 0;
         }
 
         // Add delivery charge for doorstep
@@ -116,9 +137,11 @@ const BookingPage = () => {
 
         return {
             hours: diffHours,
-            days: diffDays,
+            days: actualDays,
             rentalType,
             basePrice,
+            originalPrice,
+            discountAmount,
             deliveryCharge,
             tax,
             total
@@ -128,6 +151,16 @@ const BookingPage = () => {
     const rentalDetails = calculateRentalDetails();
 
     const handleProceedToPayment = async () => {
+        // Check if user is verified
+        if (!user?.verified) {
+            toast({
+                title: "Verification Required",
+                description: "Your account must be verified before you can make bookings. Please complete your profile with required documents.",
+                variant: "destructive"
+            });
+            return;
+        }
+
         // Validation
         if (pickupType === "STATION" && !pickupLocationId) {
             toast({ title: "Error", description: "Please select a pickup station", variant: "destructive" });
@@ -195,9 +228,48 @@ const BookingPage = () => {
         return null;
     }
 
+    // Check if user is not verified - show warning
+    const isUserVerified = user?.verified;
+
     return (
         <div className="min-h-screen bg-gray-950 py-8">
             <div className="container mx-auto px-4 max-w-6xl">
+                {/* Verification Warning Banner */}
+                {!isUserVerified && (
+                    <div className="mb-6 p-4 bg-yellow-900/30 border border-yellow-600 rounded-lg">
+                        <div className="flex items-start gap-3">
+                            <ShieldAlert className="h-6 w-6 text-yellow-500 mt-0.5" />
+                            <div>
+                                <h3 className="font-semibold text-yellow-400">Account Verification Required</h3>
+                                <p className="text-yellow-200/80 text-sm mt-1">
+                                    Your account is not verified. To make bookings, please complete your profile by uploading:
+                                </p>
+                                <ul className="text-yellow-200/80 text-sm mt-2 space-y-1">
+                                    <li className="flex items-center gap-2">
+                                        <FileCheck className="h-4 w-4" />
+                                        Profile Photo
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <FileCheck className="h-4 w-4" />
+                                        Aadhaar Card
+                                    </li>
+                                    <li className="flex items-center gap-2">
+                                        <FileCheck className="h-4 w-4" />
+                                        Driving License
+                                    </li>
+                                </ul>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="mt-3 text-yellow-400 border-yellow-600 hover:bg-yellow-600/20"
+                                    onClick={() => navigate("/profile")}
+                                >
+                                    Complete Profile
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* Header */}
                 <div className="flex items-center gap-4 mb-8">
                     <Button
@@ -375,8 +447,23 @@ const BookingPage = () => {
                             <CardContent className="space-y-4">
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-gray-400">
-                                        <span>Rental ({rentalDetails.days} days)</span>
-                                        <span>₹{rentalDetails.basePrice}</span>
+                                        <span>
+                                            Rental (
+                                            {rentalDetails.rentalType === "WEEKLY"
+                                                ? `${Math.ceil(rentalDetails.days / 7)} week${Math.ceil(rentalDetails.days / 7) !== 1 ? 's' : ''}`
+                                                : `${rentalDetails.days} day${rentalDetails.days !== 1 ? 's' : ''}`
+                                            }
+                                            )
+                                            {rentalDetails.discountAmount > 0 && (
+                                                <span className="ml-2 text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">10% OFF</span>
+                                            )}
+                                        </span>
+                                        <span className="flex items-center gap-2">
+                                            {rentalDetails.discountAmount > 0 && (
+                                                <span className="text-gray-500 line-through text-sm">₹{rentalDetails.originalPrice}</span>
+                                            )}
+                                            ₹{rentalDetails.basePrice}
+                                        </span>
                                     </div>
                                     {rentalDetails.deliveryCharge > 0 && (
                                         <div className="flex justify-between text-gray-400">
@@ -389,8 +476,8 @@ const BookingPage = () => {
                                         <span>₹{rentalDetails.tax}</span>
                                     </div>
                                     <div className="flex justify-between text-gray-400">
-                                        <span>Discount</span>
-                                        <span className="text-green-500">-₹0</span>
+                                        <span>Weekly Discount</span>
+                                        <span className="text-green-500">-₹{rentalDetails.discountAmount}</span>
                                     </div>
                                     <hr className="border-gray-700" />
                                     <div className="flex justify-between text-lg font-bold text-white">

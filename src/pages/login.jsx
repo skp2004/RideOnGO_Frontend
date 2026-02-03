@@ -9,8 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Bike, Mail, Lock, User, ArrowRight, Github, Chrome, Phone, Calendar, AlertCircle, Loader2, Upload, CheckCircle } from "lucide-react";
+import { Bike, Mail, Lock, User, ArrowRight, Phone, Calendar, AlertCircle, Loader2, Upload, CheckCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginDemo() {
@@ -310,24 +309,6 @@ export default function LoginDemo() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Social Login Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="w-full">
-              <Chrome className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-            <Button variant="outline" className="w-full">
-              <Github className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
-          </div>
-
-          <div className="relative">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-2 text-xs text-muted-foreground">
-              OR CONTINUE WITH
-            </span>
-          </div>
 
           {/* Form Fields */}
           <form className="space-y-4" onSubmit={handleSubmit}>

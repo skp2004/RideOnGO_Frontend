@@ -1,24 +1,33 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
     Bike,
     Calendar,
     MapPin,
-    Clock,
     CreditCard,
     XCircle,
     Loader2,
     RefreshCw,
-    ChevronRight,
     Building2,
     Truck,
+    Star,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import bookingService from "../services/bookingService";
 import { useToast } from "@/components/ui/toast";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const MyBookingsPage = () => {
     const navigate = useNavigate();
@@ -28,6 +37,15 @@ const MyBookingsPage = () => {
     const [bookings, setBookings] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+    const [bookingToCancel, setBookingToCancel] = useState(null);
+
+    // Review State
+    const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+    const [reviewBooking, setReviewBooking] = useState(null);
+    const [reviewRating, setReviewRating] = useState(5);
+    const [reviewComment, setReviewComment] = useState("");
+    const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
     useEffect(() => {
         if (authLoading) return; // Wait for auth to finish loading
@@ -36,31 +54,41 @@ const MyBookingsPage = () => {
             navigate("/login", { state: { from: "/my-bookings" } });
             return;
         }
-        fetchBookings();
-    }, [isAuthenticated, authLoading, navigate]);
+
+        // Only fetch bookings when user object with id is available
+        if (user?.id) {
+            fetchBookings();
+        }
+    }, [isAuthenticated, authLoading, navigate, user]);
 
     const fetchBookings = async () => {
-        if (!user) return;
+        if (!user?.id) return;
         setIsLoading(true);
         setError(null);
         try {
+            console.log("Fetching bookings for user:", user.id);
             const data = await bookingService.getUserBookings(user.id);
+            console.log("Bookings received:", data);
             // Sort by created date, newest first
             setBookings(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
         } catch (err) {
+            console.error("Error fetching bookings:", err);
             setError(err.message || "Failed to load bookings");
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleCancelBooking = async (bookingId) => {
-        if (!window.confirm("Are you sure you want to cancel this booking?")) {
-            return;
-        }
+    const initiateCancel = (bookingId) => {
+        setBookingToCancel(bookingId);
+        setIsCancelDialogOpen(true);
+    };
+
+    const handleConfirmCancel = async () => {
+        if (!bookingToCancel) return;
 
         try {
-            await bookingService.cancelBooking(bookingId);
+            await bookingService.cancelBooking(bookingToCancel);
             toast({
                 title: "Booking Cancelled",
                 description: "Your booking has been cancelled successfully.",
@@ -72,6 +100,43 @@ const MyBookingsPage = () => {
                 description: err.message || "Failed to cancel booking",
                 variant: "destructive"
             });
+        } finally {
+            setIsCancelDialogOpen(false);
+            setBookingToCancel(null);
+        }
+    };
+
+    const handleOpenReview = (booking) => {
+        setReviewBooking(booking);
+        setReviewRating(5);
+        setReviewComment("");
+        setIsReviewDialogOpen(true);
+    };
+
+    const handleSubmitReview = async () => {
+        if (!reviewBooking) return;
+
+        setIsSubmittingReview(true);
+        try {
+            await bookingService.addReview({
+                bikeId: reviewBooking.bikeId,
+                rating: reviewRating,
+                comments: reviewComment
+            });
+
+            toast({
+                title: "Review Submitted",
+                description: "Thank you for your feedback!",
+            });
+            setIsReviewDialogOpen(false);
+        } catch (err) {
+            toast({
+                title: "Error",
+                description: err.message || "Failed to submit review",
+                variant: "destructive"
+            });
+        } finally {
+            setIsSubmittingReview(false);
         }
     };
 
@@ -209,6 +274,31 @@ const MyBookingsPage = () => {
                                                 </div>
                                             </div>
 
+                                            {/* Location/Address Details */}
+                                            {(booking.pickupType === "DOORSTEP" && booking.deliveryAddress) ||
+                                                (booking.pickupType === "STATION" && booking.pickupLocationAddress) ? (
+                                                <div className="mt-3 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+                                                    <div className="flex items-start gap-2">
+                                                        <MapPin className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
+                                                        <div className="text-sm">
+                                                            <p className="text-xs text-gray-500 mb-1">
+                                                                {booking.pickupType === "DOORSTEP" ? "Delivery Address" : "Pickup Station"}
+                                                            </p>
+                                                            {booking.pickupType === "DOORSTEP" ? (
+                                                                <p className="text-gray-300">{booking.deliveryAddress}</p>
+                                                            ) : (
+                                                                <div className="text-gray-300">
+                                                                    <p>{booking.pickupLocationAddress}</p>
+                                                                    <p className="text-gray-400">
+                                                                        {booking.pickupLocationCity}, {booking.pickupLocationState} - {booking.pickupLocationPincode}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ) : null}
+
                                             {/* Actions */}
                                             {booking.bookingStatus === "CONFIRMED" && (
                                                 <div className="flex gap-3 pt-2">
@@ -216,9 +306,22 @@ const MyBookingsPage = () => {
                                                         variant="outline"
                                                         size="sm"
                                                         className="border-red-500/50 text-red-400 hover:bg-red-500/10"
-                                                        onClick={() => handleCancelBooking(booking.bookingId)}
+                                                        onClick={() => initiateCancel(booking.bookingId)}
                                                     >
                                                         Cancel Booking
+                                                    </Button>
+                                                </div>
+                                            )}
+                                            {booking.bookingStatus === "COMPLETED" && (
+                                                <div className="flex gap-3 pt-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/10"
+                                                        onClick={() => handleOpenReview(booking)}
+                                                    >
+                                                        <Star className="h-4 w-4 mr-2" />
+                                                        Write Review
                                                     </Button>
                                                 </div>
                                             )}
@@ -229,6 +332,97 @@ const MyBookingsPage = () => {
                         ))}
                     </div>
                 )}
+                {/* Cancel Dialog */}
+                <Dialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
+                    <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Cancel Booking</DialogTitle>
+                            <DialogDescription className="text-gray-400">
+                                Are you sure you want to cancel this booking? This action cannot be undone.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter className="flex gap-2 sm:justify-end">
+                            <Button
+                                variant="ghost"
+                                onClick={() => setIsCancelDialogOpen(false)}
+                                className="text-gray-400 hover:text-white hover:bg-gray-800"
+                            >
+                                Keep Booking
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleConfirmCancel}
+                                className="bg-red-500 hover:bg-red-600"
+                            >
+                                Yes, Cancel Booking
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Review Dialog */}
+                <Dialog open={isReviewDialogOpen} onOpenChange={setIsReviewDialogOpen}>
+                    <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-md">
+                        <DialogHeader>
+                            <DialogTitle>Write a Review</DialogTitle>
+                            <DialogDescription className="text-gray-400">
+                                Rate your experience with {reviewBooking?.bikeName}.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4 py-4">
+                            <div className="flex flex-col gap-2">
+                                <Label className="text-gray-300">Rating</Label>
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                        <button
+                                            key={star}
+                                            type="button"
+                                            onClick={() => setReviewRating(star)}
+                                            className="focus:outline-none transition-transform hover:scale-110"
+                                        >
+                                            <Star
+                                                className={`h-8 w-8 ${star <= reviewRating
+                                                    ? "fill-yellow-500 text-yellow-500"
+                                                    : "text-gray-600"
+                                                    }`}
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="comment" className="text-gray-300">Review</Label>
+                                <Textarea
+                                    id="comment"
+                                    value={reviewComment}
+                                    onChange={(e) => setReviewComment(e.target.value)}
+                                    placeholder="Share your experience..."
+                                    className="bg-gray-800 border-gray-700 text-white resize-none"
+                                    rows={4}
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                onClick={handleSubmitReview}
+                                disabled={isSubmittingReview}
+                                className="bg-red-500 hover:bg-red-600 w-full sm:w-auto"
+                            >
+                                {isSubmittingReview ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Submitting
+                                    </>
+                                ) : (
+                                    "Submit Review"
+                                )}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </div>
         </div>
     );

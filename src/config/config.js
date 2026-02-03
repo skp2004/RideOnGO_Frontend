@@ -12,6 +12,8 @@ export const API_ENDPOINTS = {
     LOGGED_USER: '/ums/users/me',
     REGISTER: '/ums/users/signup',
     UPDATE_PROFILE: '/ums/users/me',
+    UPLOAD_PROFILE_IMAGE: '/ums/users/me/profile-image',
+    UPLOAD_DOCUMENTS: '/ums/users/me/documents',
 
     // User endpoints
     USERS: '/ums/users',
@@ -24,4 +26,7 @@ export const API_ENDPOINTS = {
     // Booking & Payment endpoints
     BOOKINGS: '/bms/bookings',
     PAYMENTS: '/bms/payments',
+
+    // Reviews endpoint
+    REVIEWS: '/bms/reviews',
 };

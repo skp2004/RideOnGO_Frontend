@@ -107,6 +107,16 @@ const bookingService = {
         return response.data;
     },
 
+    /**
+     * Add a review for a bike
+     * @param {Object} reviewData - { bikeId, rating, comments }
+     * @returns {Promise<Object>}
+     */
+    addReview: async (reviewData) => {
+        const response = await api.post(API_ENDPOINTS.REVIEWS, reviewData);
+        return response.data;
+    },
+
     // ============ RAZORPAY CHECKOUT HELPER ============
     /**
      * Load Razorpay script dynamically
@@ -133,6 +143,19 @@ const bookingService = {
      */
     openRazorpayCheckout: (options) => {
         return new Promise((resolve, reject) => {
+            // Check if we are using the mock key from backend
+            if (options.key === "mock_key_id") {
+                console.log("Using Mock Razorpay Payment");
+                setTimeout(() => {
+                    resolve({
+                        razorpay_order_id: options.order_id,
+                        razorpay_payment_id: "pay_mock_" + Date.now(),
+                        razorpay_signature: "mock_signature_" + Date.now()
+                    });
+                }, 1000); // Simulate 1s delay
+                return;
+            }
+
             const razorpay = new window.Razorpay({
                 ...options,
                 handler: (response) => {

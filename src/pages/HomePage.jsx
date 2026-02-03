@@ -11,12 +11,26 @@ import {
     CheckCircle2,
     Zap,
     Loader2,
+    Users,
+    CalendarCheck,
+    Star,
+    Quote,
 } from "lucide-react";
 import adminService from "../services/adminService";
+import reviewService from "../services/reviewService";
+import { useAuth } from "../context/AuthContext";
 
 const HomePage = () => {
     const [bikes, setBikes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [stats, setStats] = useState({
+        totalBikes: 0,
+        totalLocations: 0,
+        totalBookings: 0,
+        rating: "4.9"
+    });
+    const [reviews, setReviews] = useState([]);
+    const { user } = useAuth();
 
     const features = [
         {
@@ -41,29 +55,41 @@ const HomePage = () => {
         },
     ];
 
-    const stats = [
-        { value: "10K+", label: "Happy Riders" },
-        { value: "500+", label: "Bikes Available" },
-        { value: "50+", label: "Pickup Points" },
-        { value: "4.9", label: "App Rating" },
-    ];
-
-    // Fetch featured bikes from API
+    // Fetch featured bikes and stats from API
     useEffect(() => {
-        const fetchBikes = async () => {
+        const fetchData = async () => {
             try {
-                const data = await adminService.getBikes();
-                // Get first 4 available bikes for featured section
-                const availableBikes = data.filter(bike => bike.status === "AVAILABLE").slice(0, 4);
+                // Fetch bikes
+                const bikesData = await adminService.getBikes();
+                const availableBikes = bikesData.filter(bike => bike.status === "AVAILABLE").slice(0, 4);
                 setBikes(availableBikes);
+
+                // Fetch locations for stats
+                const locationsData = await adminService.getLocations();
+
+                // Update stats with real data
+                setStats({
+                    totalBikes: bikesData.length,
+                    totalLocations: locationsData.length,
+                    totalBookings: "100+", // Placeholder - would need bookings count API
+                    rating: "4.9"
+                });
+
+                // Fetch reviews
+                try {
+                    const reviewsData = await reviewService.getAllReviews();
+                    setReviews(reviewsData.slice(0, 6)); // Show max 6 reviews
+                } catch (err) {
+                    console.error("Failed to fetch reviews:", err);
+                }
             } catch (error) {
-                console.error("Failed to fetch bikes:", error);
+                console.error("Failed to fetch data:", error);
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchBikes();
+        fetchData();
     }, []);
 
     // Get status badge color
@@ -120,16 +146,30 @@ const HomePage = () => {
                             </div>
 
                             <div className="flex items-center gap-6 pt-4">
-                                {stats.slice(0, 3).map((stat, index) => (
-                                    <div key={index} className="text-center">
-                                        <div className="text-3xl font-bold text-primary">
-                                            {stat.value}
-                                        </div>
-                                        <div className="text-sm text-muted-foreground">
-                                            {stat.label}
-                                        </div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-primary">
+                                        {stats.totalBikes}+
                                     </div>
-                                ))}
+                                    <div className="text-sm text-muted-foreground">
+                                        Bikes Available
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-primary">
+                                        {stats.totalLocations}+
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        Pickup Points
+                                    </div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-primary">
+                                        {stats.rating}
+                                    </div>
+                                    <div className="text-sm text-muted-foreground">
+                                        User Rating
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -267,6 +307,75 @@ const HomePage = () => {
                     )}
                 </div>
             </section>
+
+            {/* Customer Reviews Section */}
+            {reviews.length > 0 && (
+                <section className="py-20 bg-gradient-to-b from-black via-gray-900/50 to-black">
+                    <div className="container mx-auto px-4">
+                        <div className="text-center mb-12">
+                            <span className="inline-block px-4 py-1 bg-red-500/20 text-red-400 rounded-full text-sm font-medium mb-4">
+                                Testimonials
+                            </span>
+                            <h2 className="text-4xl font-bold mb-4 text-white">
+                                What Our Riders Say
+                            </h2>
+                            <p className="text-muted-foreground max-w-2xl mx-auto">
+                                Real experiences from our satisfied customers who love riding with us.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {reviews.map((review) => (
+                                <div
+                                    key={review.id}
+                                    className="relative p-6 rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-gray-700/50 backdrop-blur-sm hover:border-red-500/30 transition-all duration-300 group"
+                                >
+                                    {/* Quote Icon */}
+                                    <div className="absolute -top-3 -left-3 p-2 bg-red-500 rounded-full">
+                                        <Quote className="h-4 w-4 text-white" />
+                                    </div>
+
+                                    {/* Star Rating */}
+                                    <div className="flex gap-1 mb-4">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`h-5 w-5 ${star <= review.rating
+                                                        ? "fill-yellow-400 text-yellow-400"
+                                                        : "text-gray-600"
+                                                    }`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Review Comment */}
+                                    <p className="text-gray-300 mb-4 leading-relaxed line-clamp-4">
+                                        "{review.comments || 'Great experience renting from RideOnGo!'}"
+                                    </p>
+
+                                    {/* User Info */}
+                                    <div className="flex items-center gap-3 pt-4 border-t border-gray-700/50">
+                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold">
+                                            {review.userName ? review.userName.charAt(0).toUpperCase() : 'U'}
+                                        </div>
+                                        <div>
+                                            <p className="font-medium text-white">
+                                                {review.userName || `User #${review.userId}`}
+                                            </p>
+                                            <p className="text-sm text-gray-500">
+                                                Verified Rider
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Decorative gradient */}
+                                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* CTA Section */}
             <section className="py-20">

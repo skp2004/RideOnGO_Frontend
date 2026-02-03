@@ -53,9 +53,9 @@ const BikesPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedModalDuration, setSelectedModalDuration] = useState("1 Day");
 
-    const durationOptions = ["Hourly", "1 Day", "7 Days"];
+    const durationOptions = ["1 Day", "7 Days"];
     const categoryOptions = ["COMMUTER", "CRUIZER", "SCOOTER", "SPORT"];
-    const modalDurationTabs = ["Hourly", "1 Day", "7 Days"];
+    const modalDurationTabs = ["1 Day", "7 Days"];
 
     // Fetch bikes from API (all bikes or by location)
     const fetchBikes = async () => {
@@ -149,15 +149,25 @@ const BikesPage = () => {
     const getPriceForDuration = (bike, duration) => {
         if (!bike) return 0;
         switch (duration) {
-            case "Hourly":
-                return bike.ratePerHour || 0;
             case "1 Day":
                 return bike.ratePerDay || 0;
-            case "7 Days":
-                return bike.pricePer7Days || bike.ratePerDay * 7;
+            case "7 Days": {
+                const weeklyPrice = bike.pricePer7Days || bike.ratePerDay * 7;
+                // Apply 10% discount for weekly
+                return Math.round(weeklyPrice * 0.9);
+            }
             default:
                 return bike.ratePerDay || 0;
         }
+    };
+
+    // Get original price (without discount)
+    const getOriginalPrice = (bike, duration) => {
+        if (!bike) return 0;
+        if (duration === "7 Days") {
+            return bike.pricePer7Days || bike.ratePerDay * 7;
+        }
+        return bike.ratePerDay || 0;
     };
 
     // Get category description
@@ -483,16 +493,16 @@ const BikesPage = () => {
                                                 {/* Duration Pricing Tabs */}
                                                 <div className="flex justify-center gap-2 mb-4">
                                                     <div className="text-center px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                                                        <p className="text-xs text-muted-foreground">Per Hour</p>
-                                                        <p className="font-bold text-red-500">₹{bike.ratePerHour}</p>
+                                                        <p className="text-xs text-muted-foreground">1 Day</p>
+                                                        <p className="font-bold text-red-500">₹{bike.ratePerDay}</p>
                                                     </div>
-                                                    <div className="text-center px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
-                                                        <p className="text-xs text-gray-400">1 Day</p>
-                                                        <p className="font-bold text-white">₹{bike.ratePerDay}</p>
-                                                    </div>
-                                                    <div className="text-center px-3 py-2 rounded-lg bg-gray-800 border border-gray-700">
+                                                    <div className="text-center px-3 py-2 rounded-lg bg-green-900/20 border border-green-700 relative">
+                                                        <span className="absolute -top-2 -right-2 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">10% OFF</span>
                                                         <p className="text-xs text-gray-400">7 Days</p>
-                                                        <p className="font-bold text-white">₹{bike.pricePer7Days || bike.ratePerDay * 7}</p>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-xs text-gray-500 line-through">₹{bike.pricePer7Days || bike.ratePerDay * 7}</span>
+                                                            <p className="font-bold text-green-400">₹{Math.round((bike.pricePer7Days || bike.ratePerDay * 7) * 0.9)}</p>
+                                                        </div>
                                                     </div>
                                                 </div>
 

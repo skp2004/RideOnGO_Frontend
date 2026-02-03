@@ -53,7 +53,7 @@ const PaymentPage = () => {
 
             // Open Razorpay checkout
             const paymentResponse = await bookingService.openRazorpayCheckout({
-                key: orderData.razorpayKeyId,
+                key: orderData.key,
                 amount: orderData.amount,
                 currency: orderData.currency,
                 name: "RideOnGo",
@@ -75,6 +75,7 @@ const PaymentPage = () => {
                 razorpayPaymentId: paymentResponse.razorpay_payment_id,
                 razorpaySignature: paymentResponse.razorpay_signature,
                 bookingId: booking.bookingId,
+                amount: booking.totalAmount, // Add amount
                 paymentMode: "RAZORPAY"
             });
 

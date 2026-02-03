@@ -132,35 +132,7 @@ const ContactPage = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Map Placeholder */}
-                        <div className="space-y-6">
-                            <div className="rounded-2xl overflow-hidden bg-muted h-[400px] flex items-center justify-center">
-                                <div className="text-center">
-                                    <div className="text-6xl mb-4">📍</div>
-                                    <h3 className="text-xl font-semibold mb-2">Find Us Here</h3>
-                                    <p className="text-muted-foreground">
-                                        123 Bike Street, Pune
-                                    </p>
-                                    <Button variant="outline" className="mt-4">
-                                        <MapPin className="mr-2 h-4 w-4" />
-                                        Get Directions
-                                    </Button>
-                                </div>
-                            </div>
 
-                            <Card className="border-none bg-gradient-to-r from-red-500 to-red-600 text-white">
-                                <CardContent className="p-6">
-                                    <h3 className="text-xl font-bold mb-2">Quick Support</h3>
-                                    <p className="opacity-90 mb-4">
-                                        Need immediate assistance? Call our 24/7 support line.
-                                    </p>
-                                    <div className="flex items-center gap-3">
-                                        <Phone className="h-5 w-5" />
-                                        <span className="text-lg font-semibold">+91 98765 43210</span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </div>
                     </div>
                 </div>
             </section>
